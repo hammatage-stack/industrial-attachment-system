@@ -2,6 +2,7 @@
   "name": "industrial-attachment-frontend",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Frontend for Industrial Attachment Management System",
   "scripts": {
     "dev": "vite",
