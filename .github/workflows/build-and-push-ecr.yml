@@ -164,7 +164,9 @@ jobs:
       
       # Optional: Auto-create PR in GitOps repo
       - name: Create PR in GitOps repo (Optional)
-        if: secrets.GITOPS_REPO_TOKEN != ''
+        if: env.GITOPS_REPO_TOKEN != ''
+        env:
+          GITOPS_REPO_TOKEN: ${{ secrets.GITOPS_REPO_TOKEN }}
         run: |
           # This would create a PR in your GitOps repo with updated image tags
           # Requires GITOPS_REPO_TOKEN secret
