@@ -1,0 +1,14 @@
+// Opportunities.jsx
+export { default } from './OpportunitiesPlaceholder';
+
+// OpportunityDetail.jsx  
+export { default } from './OpportunityDetailPlaceholder';
+
+// Apply.jsx
+export { default } from './ApplyPlaceholder';
+
+// Dashboard.jsx
+export { default } from './DashboardPlaceholder';
+
+// MyApplications.jsx
+export { default } from './MyApplicationsPlaceholder';
