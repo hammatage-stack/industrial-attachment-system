@@ -229,3 +229,6 @@ class EmailService {
     this.emailLog = [];
   }
 }
+
+// Export singleton instance
+module.exports = new EmailService();
