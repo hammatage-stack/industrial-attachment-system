@@ -254,6 +254,21 @@ const Register = () => {
               value={formData.phoneNumber}
             />
 
+            <div className="mb-4">
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+              <select
+                id="role"
+                name="role"
+                value={formData.role || 'student'}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className="w-full pl-3 pr-4 py-3 border-2 rounded-lg focus:outline-none border-gray-300 focus:border-blue-500"
+              >
+                <option value="student">Student</option>
+                <option value="company">Company</option>
+              </select>
+            </div>
+
             <FormField
               icon={FiHome}
               label="Institution"
