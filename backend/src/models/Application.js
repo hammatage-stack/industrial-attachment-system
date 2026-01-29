@@ -37,6 +37,16 @@ const applicationSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Nationality is required']
   },
+  idType: {
+    type: String,
+    enum: ['national-id', 'passport', 'alien-id'],
+    required: [true, 'ID type is required']
+  },
+  idNumber: {
+    type: String,
+    required: [true, 'ID number is required'],
+    trim: true
+  },
   
   // Educational Information
   institution: {
@@ -68,6 +78,17 @@ const applicationSchema = new mongoose.Schema({
     url: {
       type: String,
       required: [true, 'Resume is required']
+    },
+    publicId: String,
+    uploadedAt: {
+      type: Date,
+      default: Date.now
+    }
+  },
+  recommendationLetter: {
+    url: {
+      type: String,
+      required: [true, 'Recommendation letter is required']
     },
     publicId: String,
     uploadedAt: {

@@ -43,6 +43,17 @@ const Navbar = () => {
                 <Link to="/my-applications" className="text-gray-700 hover:text-primary-600 px-3 py-2">
                   My Applications
                 </Link>
+                <Link to="/institutions" className="text-gray-700 hover:text-primary-600 px-3 py-2">
+                  Institutions
+                </Link>
+                
+                {/* Admin link - only visible to admins */}
+                {user?.role === 'admin' && (
+                  <Link to="/admin" className="text-purple-600 hover:text-purple-700 px-3 py-2 font-semibold">
+                    Admin
+                  </Link>
+                )}
+                
                 <div className="flex items-center space-x-2 ml-4">
                   <FiUser className="text-gray-600" />
                   <span className="text-gray-700">{user?.firstName}</span>
@@ -114,6 +125,25 @@ const Navbar = () => {
                 >
                   My Applications
                 </Link>
+                <Link
+                  to="/institutions"
+                  className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Institutions
+                </Link>
+                
+                {/* Admin link - only visible to admins */}
+                {user?.role === 'admin' && (
+                  <Link
+                    to="/admin"
+                    className="block px-3 py-2 text-purple-600 hover:bg-purple-100 rounded font-semibold"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Admin
+                  </Link>
+                )}
+                
                 <div className="px-3 py-2 text-gray-700 border-t">
                   <div className="flex items-center space-x-2 mb-2">
                     <FiUser />

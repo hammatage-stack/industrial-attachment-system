@@ -1,6 +1,7 @@
 const Application = require('../models/Application');
 const Opportunity = require('../models/Opportunity');
 const mpesaService = require('../utils/mpesaService');
+const emailService = require('../utils/emailService');
 const config = require('../config/config');
 
 // @desc    Create/Save application draft

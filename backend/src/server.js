@@ -10,6 +10,9 @@ const authRoutes = require('./routes/auth');
 const opportunityRoutes = require('./routes/opportunities');
 const applicationRoutes = require('./routes/applications');
 const uploadRoutes = require('./routes/upload');
+const institutionRoutes = require('./routes/institutions');
+const paymentRoutes = require('./routes/payments');
+const adminRoutes = require('./routes/admin');
 
 // Initialize express app
 const app = express();
@@ -50,6 +53,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/opportunities', opportunityRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/institutions', institutionRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
