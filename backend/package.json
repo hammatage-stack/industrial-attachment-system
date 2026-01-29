@@ -12,7 +12,8 @@
     "test:integration": "jest --testPathPattern=integration",
     "test:e2e": "jest --testPathPattern=e2e",
     "init:db": "node scripts/init-db.js",
-    "seed:admins": "node scripts/seed-admins.js"
+    "seed:admins": "node scripts/seed-admins.js",
+    "seed:opps:kenya": "node scripts/seed-opportunities-kenya.js"
   },
   "keywords": ["internship", "industrial-attachment", "nita"],
   "author": "",
