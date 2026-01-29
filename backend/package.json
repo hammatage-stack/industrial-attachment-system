@@ -10,7 +10,8 @@
     "test:watch": "jest --watch",
     "test:unit": "jest --testPathPattern=unit",
     "test:integration": "jest --testPathPattern=integration",
-    "test:e2e": "jest --testPathPattern=e2e"
+    "test:e2e": "jest --testPathPattern=e2e",
+    "init:db": "node scripts/init-db.js"
   },
   "keywords": ["internship", "industrial-attachment", "nita"],
   "author": "",
@@ -33,14 +34,12 @@
     "socket.io": "^4.7.2",
     "bull": "^4.11.5",
     "redis": "^4.6.12",
-    "joi": "^17.11.0",
-    "africas-talking": "^0.2.2"
+    "joi": "^17.11.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2",
     "jest": "^29.7.0",
     "supertest": "^6.3.3",
-    "@types/jest": "^29.5.11",
-    "jest-mongodb": "^4.10.0"
+    "@types/jest": "^29.5.11"
   }
 }

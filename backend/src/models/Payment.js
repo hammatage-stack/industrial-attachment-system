@@ -5,7 +5,7 @@ const paymentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Application',
     required: true,
-    unique: true
+    index: true
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,
@@ -24,10 +24,10 @@ const paymentSchema = new mongoose.Schema({
   mpesaCode: {
     type: String,
     required: [true, 'M-Pesa transaction code is required'],
-    unique: true,
     trim: true,
     uppercase: true,
-    match: [/^[A-Z0-9]{10}$/, 'Invalid M-Pesa transaction code format']
+    match: [/^[A-Z0-9]{10}$/, 'Invalid M-Pesa transaction code format'],
+    index: true
   },
   phoneNumber: {
     type: String,
@@ -72,9 +72,7 @@ const paymentSchema = new mongoose.Schema({
 });
 
 // Index for efficient queries
-paymentSchema.index({ application: 1 });
 paymentSchema.index({ user: 1, status: 1 });
-paymentSchema.index({ mpesaCode: 1 });
 paymentSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Payment', paymentSchema);
