@@ -30,7 +30,7 @@ module.exports = {
     port: process.env.EMAIL_PORT || 587,
     user: process.env.EMAIL_USER,
     password: process.env.EMAIL_PASSWORD,
-    from: process.env.EMAIL_FROM || 'noreply@attachmentsystem.com'
+    from: process.env.EMAIL_FROM || 'industrialattachmentsystem@gmail.com'
   },
   
   // Application Fee
