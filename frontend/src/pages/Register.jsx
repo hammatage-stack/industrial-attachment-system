@@ -62,9 +62,9 @@ const Register = () => {
       <div className="max-w-md w-full space-y-6">
         <div>
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-blue-900">NITA</h1>
-            <p className="text-sm text-orange-500 font-semibold">Student Portal</p>
-            <p className="text-xs text-gray-600 mt-1">Create your account</p>
+            <h1 className="text-3xl font-bold text-gray-900">Industrial Attachment System</h1>
+            <p className="text-sm text-gray-600 font-semibold mt-1">Create Your Account</p>
+            <p className="text-xs text-gray-500 mt-1">Register to apply for opportunities</p>
           </div>
         </div>
         
