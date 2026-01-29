@@ -116,14 +116,17 @@ exports.createOpportunity = async (req, res) => {
 
     const opportunity = await Opportunity.create(opportunityData);
 
-    // Create notification for students about new opportunity
+    // Create notification for students about new opportunity and emit via socket
     try {
-      await Notification.create({
+      const notif = await Notification.create({
         type: 'opportunity',
         role: 'student',
         message: `New opportunity: ${opportunity.title} at ${opportunity.companyName}`,
         link: `/opportunities/${opportunity._id}`
       });
+      // Emit to socket room 'students'
+      const io = req.app.get('io');
+      if (io) io.emit('notification', notif);
     } catch (e) {
       console.error('Notification error:', e);
     }

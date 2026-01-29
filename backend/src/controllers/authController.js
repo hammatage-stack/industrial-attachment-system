@@ -11,28 +11,43 @@ const generateToken = (id) => {
   });
 };
 
+// Normalize phone number to E.164-like without plus: accept 07XXXXXXXX, +2547XXXXXXXX, 2547XXXXXXXX
+const normalizePhone = (phone) => {
+  if (!phone) return null;
+  let p = String(phone).trim();
+  // remove spaces and non-digits except leading +
+  p = p.replace(/[^0-9+]/g, '');
+  if (p.startsWith('+')) p = p.slice(1);
+  if (p.startsWith('0') && p.length === 10) {
+    // 07XXXXXXXX -> 2547XXXXXXXX
+    p = '254' + p.slice(1);
+  }
+  return p;
+};
+
 // @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public
 exports.register = async (req, res) => {
   try {
-    const { fullName, email, password, regNumber, institution } = req.body;
+    const { fullName, email, password, phoneNumber, institution } = req.body;
 
     // Validate required fields for new signup flow
-    if (!fullName || !email || !password || !regNumber || !institution) {
+    if (!fullName || !email || !password || !phoneNumber || !institution) {
       return res.status(400).json({
         success: false,
-        message: 'All fields are required: fullName, email, regNumber, institution, password'
+        message: 'All fields are required: fullName, email, phoneNumber, institution, password'
       });
     }
 
-    // Ensure regNumber uniqueness
-    const regExists = await User.findOne({ regNumber: regNumber.toUpperCase().trim() });
-    if (regExists) {
-      return res.status(400).json({
-        success: false,
-        message: 'User already exists with this registration number'
-      });
+    // Normalize phone and ensure uniqueness
+    const normalizedPhone = normalizePhone(phoneNumber);
+    if (!normalizedPhone) {
+      return res.status(400).json({ success: false, message: 'Invalid phone number' });
+    }
+    const phoneExists = await User.findOne({ phoneNumber: normalizedPhone });
+    if (phoneExists) {
+      return res.status(400).json({ success: false, message: 'User already exists with this phone number' });
     }
 
     // Ensure email is Gmail only
@@ -56,7 +71,7 @@ exports.register = async (req, res) => {
     const user = await User.create({
       fullName: fullName.trim(),
       email: email.toLowerCase().trim(),
-      regNumber: regNumber.toUpperCase().trim(),
+      phoneNumber: normalizedPhone,
       institution: institution.trim(),
       password
     });
@@ -71,7 +86,6 @@ exports.register = async (req, res) => {
       user: {
         id: user._id,
         admissionNumber: user.admissionNumber,
-        regNumber: user.regNumber,
         fullName: user.fullName,
         email: user.email,
         institution: user.institution,
@@ -204,7 +218,6 @@ exports.login = async (req, res) => {
       user: {
         id: user._id,
         admissionNumber: user.admissionNumber,
-        regNumber: user.regNumber,
         fullName: user.fullName,
         email: user.email,
         institution: user.institution,
@@ -234,7 +247,6 @@ exports.getMe = async (req, res) => {
       user: {
         id: user._id,
         admissionNumber: user.admissionNumber,
-        regNumber: user.regNumber,
         fullName: user.fullName,
         email: user.email,
         institution: user.institution,

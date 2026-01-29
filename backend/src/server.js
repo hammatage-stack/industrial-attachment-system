@@ -79,8 +79,17 @@ app.use((req, res) => {
 
 // Start server
 const PORT = config.port;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running in ${config.nodeEnv} mode on port ${PORT}`);
 });
+
+// Initialize Socket.IO for real-time notifications
+try {
+  const socketUtil = require('./utils/socket');
+  const io = socketUtil.init(server);
+  app.set('io', io);
+} catch (e) {
+  console.error('Socket init failed', e);
+}
 
 module.exports = app;

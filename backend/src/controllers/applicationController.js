@@ -394,12 +394,14 @@ exports.updateApplicationStatus = async (req, res) => {
     // Notify applicant
     try {
       const Notification = require('../models/Notification');
-      await Notification.create({
+      const notif = await Notification.create({
         user: application.applicant,
         type: 'application_status',
         message: `Your application status changed to ${status}`,
         link: `/applications/${application._id}`
       });
+      const io = req.app.get('io');
+      if (io) io.to(application.applicant.toString()).emit('notification', notif);
     } catch (e) {
       console.error('Notification error:', e);
     }
