@@ -79,6 +79,22 @@ exports.validateMpesaPayment = async (req, res) => {
     application.payment.phoneNumber = phoneNumber;
     await application.save();
 
+    // Notify admin about the new submission (applicant has submitted payment)
+    try {
+      const User = require('../models/User');
+      const applicant = await User.findById(application.applicant).select('firstName lastName email');
+      const applicantName = applicant ? `${applicant.firstName || ''} ${applicant.lastName || ''}`.trim() || applicant.email : 'Applicant';
+
+      await emailService.sendAdminPaymentNotification(
+        config.email.adminEmail,
+        applicantName,
+        payment.mpesaCode,
+        payment.amount
+      );
+    } catch (notifyErr) {
+      console.error('Admin notification error (submission):', notifyErr.message || notifyErr);
+    }
+
     res.status(201).json({
       success: true,
       message: 'Payment submission received. Awaiting verification from admin.',
