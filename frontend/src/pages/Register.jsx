@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { FiMail, FiLock, FiUser, FiPhone, FiBuilding, FiEye, FiEyeOff, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiMail, FiLock, FiUser, FiPhone, FiHome, FiEye, FiEyeOff, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import useAuthStore from '../context/authStore';
 
 const Register = () => {
@@ -255,7 +255,7 @@ const Register = () => {
             />
 
             <FormField
-              icon={FiBuilding}
+              icon={FiHome}
               label="Institution"
               name="institution"
               placeholder="e.g., University of Nairobi"
