@@ -18,7 +18,7 @@ exports.getDashboardStats = async (req, res) => {
     const pendingPayments = await Payment.countDocuments({ status: 'pending' });
     const verifiedPayments = await Payment.countDocuments({ status: 'verified' });
     
-    const activeOpportunities = await Opportunity.countDocuments({ status: 'active' });
+    const activeOpportunities = await Opportunity.countDocuments({ status: 'open' });
     const closedOpportunities = await Opportunity.countDocuments({ status: 'closed' });
     
     const verifiedInstitutions = await Institution.countDocuments({

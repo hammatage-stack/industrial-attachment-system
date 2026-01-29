@@ -24,7 +24,7 @@ exports.advancedSearchOpportunities = async (req, res) => {
       sort = 'createdAt'
     } = req.query;
 
-    const query = { status: 'active' };
+    const query = { status: 'open' };
 
     // Text search
     if (keyword) {

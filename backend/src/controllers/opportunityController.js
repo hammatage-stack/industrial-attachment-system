@@ -1,4 +1,6 @@
 const Opportunity = require('../models/Opportunity');
+const Notification = require('../models/Notification');
+const Audit = require('../models/Audit');
 
 // @desc    Get all opportunities
 // @route   GET /api/opportunities
@@ -8,7 +10,9 @@ exports.getOpportunities = async (req, res) => {
     const {
       type,
       category,
+      field,
       location,
+      duration,
       search,
       page = 1,
       limit = 12,
@@ -16,10 +20,12 @@ exports.getOpportunities = async (req, res) => {
     } = req.query;
 
     // Build query
-    const query = { status: 'active' };
+    const query = { status: 'open' };
     
     if (type) query.type = { $in: [type, 'both'] };
     if (category) query.category = category;
+    if (field) query.category = field;
+    if (duration) query.duration = duration;
     if (location) query.location = new RegExp(location, 'i');
     if (search) {
       query.$text = { $search: search };
@@ -109,6 +115,31 @@ exports.createOpportunity = async (req, res) => {
     };
 
     const opportunity = await Opportunity.create(opportunityData);
+
+    // Create notification for students about new opportunity
+    try {
+      await Notification.create({
+        type: 'opportunity',
+        role: 'student',
+        message: `New opportunity: ${opportunity.title} at ${opportunity.companyName}`,
+        link: `/opportunities/${opportunity._id}`
+      });
+    } catch (e) {
+      console.error('Notification error:', e);
+    }
+
+    // Audit log
+    try {
+      await Audit.create({
+        action: 'create_opportunity',
+        resource: 'Opportunity',
+        resourceId: opportunity._id,
+        performedBy: req.user.id,
+        details: opportunity.toObject()
+      });
+    } catch (e) {
+      console.error('Audit log error:', e);
+    }
 
     res.status(201).json({
       success: true,
@@ -217,5 +248,55 @@ exports.getCategories = async (req, res) => {
       success: false,
       message: 'Error fetching categories'
     });
+  }
+};
+
+// Save opportunity for user
+exports.saveOpportunity = async (req, res) => {
+  try {
+    const user = await require('../models/User').findById(req.user.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const oppId = req.params.id;
+    if (user.savedOpportunities && user.savedOpportunities.includes(oppId)) {
+      return res.status(200).json({ success: true, message: 'Already saved' });
+    }
+
+    user.savedOpportunities = user.savedOpportunities || [];
+    user.savedOpportunities.push(oppId);
+    await user.save();
+
+    res.status(200).json({ success: true, message: 'Opportunity saved' });
+  } catch (error) {
+    console.error('Save opportunity error:', error);
+    res.status(500).json({ success: false, message: 'Error saving opportunity' });
+  }
+};
+
+exports.removeSavedOpportunity = async (req, res) => {
+  try {
+    const user = await require('../models/User').findById(req.user.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const oppId = req.params.id;
+    user.savedOpportunities = (user.savedOpportunities || []).filter(id => id.toString() !== oppId.toString());
+    await user.save();
+
+    res.status(200).json({ success: true, message: 'Removed from saved' });
+  } catch (error) {
+    console.error('Remove saved error:', error);
+    res.status(500).json({ success: false, message: 'Error removing saved opportunity' });
+  }
+};
+
+exports.getSavedOpportunities = async (req, res) => {
+  try {
+    const user = await require('../models/User').findById(req.user.id).populate('savedOpportunities');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    res.status(200).json({ success: true, opportunities: user.savedOpportunities || [] });
+  } catch (error) {
+    console.error('Get saved opportunities error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching saved opportunities' });
   }
 };

@@ -9,11 +9,27 @@ const config = require('../config/config');
 // @access  Private
 exports.createApplication = async (req, res) => {
   try {
+    // Allow clients to set status when applying (e.g., 'pending') but default to 'draft'
+    const allowedStatuses = ['draft', 'pending', 'submitted'];
+    const statusFromClient = req.body.status && allowedStatuses.includes(req.body.status) ? req.body.status : 'draft';
+
     const applicationData = {
       ...req.body,
       applicant: req.user.id,
-      status: 'draft'
+      status: statusFromClient
     };
+    
+      // Prevent duplicate applications
+      if (applicationData.opportunity) {
+        const existing = await Application.findOne({ applicant: req.user.id, opportunity: applicationData.opportunity });
+        if (existing) {
+          return res.status(400).json({ success: false, message: 'You have already applied for this opportunity.' });
+        }
+      }
+
+    if (statusFromClient === 'pending' || statusFromClient === 'submitted') {
+      applicationData.appliedAt = new Date();
+    }
 
     const application = await Application.create(applicationData);
 
@@ -360,6 +376,33 @@ exports.updateApplicationStatus = async (req, res) => {
     }
 
     await application.save();
+
+    // Audit log for status update
+    try {
+      const Audit = require('../models/Audit');
+      await Audit.create({
+        action: 'update_application_status',
+        resource: 'Application',
+        resourceId: application._id,
+        performedBy: req.user.id,
+        details: { status }
+      });
+    } catch (e) {
+      console.error('Audit log error:', e);
+    }
+
+    // Notify applicant
+    try {
+      const Notification = require('../models/Notification');
+      await Notification.create({
+        user: application.applicant,
+        type: 'application_status',
+        message: `Your application status changed to ${status}`,
+        link: `/applications/${application._id}`
+      });
+    } catch (e) {
+      console.error('Notification error:', e);
+    }
 
     res.status(200).json({
       success: true,

@@ -1,6 +1,8 @@
 const User = require('../models/User');
+const OTP = require('../models/OTP');
 const jwt = require('jsonwebtoken');
 const config = require('../config/config');
+const crypto = require('crypto');
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -14,32 +16,49 @@ const generateToken = (id) => {
 // @access  Public
 exports.register = async (req, res) => {
   try {
-    const { admissionNumber, password, firstName, lastName, phoneNumber } = req.body;
+    const { fullName, email, password, regNumber, institution } = req.body;
 
-    // Validate required fields
-    if (!admissionNumber || !password || !firstName || !lastName || !phoneNumber) {
+    // Validate required fields for new signup flow
+    if (!fullName || !email || !password || !regNumber || !institution) {
       return res.status(400).json({
         success: false,
-        message: 'All fields are required: admissionNumber, password, firstName, lastName, phoneNumber'
+        message: 'All fields are required: fullName, email, regNumber, institution, password'
       });
     }
 
-    // Check if user already exists
-    const userExists = await User.findOne({ admissionNumber: admissionNumber.toUpperCase().trim() });
-    if (userExists) {
+    // Ensure regNumber uniqueness
+    const regExists = await User.findOne({ regNumber: regNumber.toUpperCase().trim() });
+    if (regExists) {
       return res.status(400).json({
         success: false,
-        message: 'User already exists with this admission number'
+        message: 'User already exists with this registration number'
+      });
+    }
+
+    // Ensure email is Gmail only
+    if (!email.toLowerCase().endsWith('@gmail.com')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please use a Gmail address (example@gmail.com)'
+      });
+    }
+
+    // Ensure email uniqueness
+    const emailExists = await User.findOne({ email: email.toLowerCase().trim() });
+    if (emailExists) {
+      return res.status(400).json({
+        success: false,
+        message: 'User already exists with this email'
       });
     }
 
     // Create user
     const user = await User.create({
-      admissionNumber: admissionNumber.toUpperCase().trim(),
-      password,
-      firstName,
-      lastName,
-      phoneNumber
+      fullName: fullName.trim(),
+      email: email.toLowerCase().trim(),
+      regNumber: regNumber.toUpperCase().trim(),
+      institution: institution.trim(),
+      password
     });
 
     // Generate token
@@ -52,8 +71,10 @@ exports.register = async (req, res) => {
       user: {
         id: user._id,
         admissionNumber: user.admissionNumber,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        regNumber: user.regNumber,
+        fullName: user.fullName,
+        email: user.email,
+        institution: user.institution,
         phoneNumber: user.phoneNumber,
         role: user.role
       }
@@ -68,30 +89,98 @@ exports.register = async (req, res) => {
   }
 };
 
+// @desc Request password reset
+// @route POST /api/auth/password-reset
+// @access Public
+exports.requestPasswordReset = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+      return res.status(200).json({ success: true, message: 'If the email exists, a reset link has been sent' });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+
+    // Save OTP record
+    await OTP.create({
+      user: user._id,
+      code: token,
+      type: 'email',
+      deliveredTo: user.email,
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000) // 1 hour
+    });
+
+    const resetLink = `${config.frontendUrl}/password-reset/${token}`;
+    const emailService = require('../utils/emailServiceEnhanced');
+    await emailService.sendPasswordResetEmail(user.email, resetLink);
+
+    res.status(200).json({ success: true, message: 'If the email exists, a reset link has been sent' });
+  } catch (error) {
+    console.error('Password reset request error:', error);
+    res.status(500).json({ success: false, message: 'Error processing password reset' });
+  }
+};
+
+// @desc Reset password
+// @route POST /api/auth/reset-password
+// @access Public
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Token and new password are required' });
+    }
+
+    const otp = await OTP.findOne({ code: token, verified: false, expiresAt: { $gte: new Date() } });
+    if (!otp) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired token' });
+    }
+
+    const user = await User.findById(otp.user).select('+password');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    otp.verified = true;
+    await otp.save();
+
+    res.status(200).json({ success: true, message: 'Password reset successful' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ success: false, message: 'Error resetting password' });
+  }
+};
+
 // @desc    Login user
 // @route   POST /api/auth/login
 // @access  Public
 exports.login = async (req, res) => {
   try {
-    const { admissionNumber, password } = req.body;
+    const { email, password } = req.body;
 
-    // Validate input
-    if (!admissionNumber || !password) {
+    // Validate input (now requires email + password)
+    if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide admission number and password'
+        message: 'Please provide email and password'
       });
     }
 
-    // Find user by admission number and include password
-    const user = await User.findOne({ 
-      admissionNumber: admissionNumber.toString().toUpperCase().trim() 
-    }).select('+password');
-    
+    // Find user by email and include password
+    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
+
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials'
+        message: 'Invalid email or password'
       });
     }
 
@@ -115,8 +204,10 @@ exports.login = async (req, res) => {
       user: {
         id: user._id,
         admissionNumber: user.admissionNumber,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        regNumber: user.regNumber,
+        fullName: user.fullName,
+        email: user.email,
+        institution: user.institution,
         phoneNumber: user.phoneNumber,
         role: user.role
       }
@@ -143,8 +234,10 @@ exports.getMe = async (req, res) => {
       user: {
         id: user._id,
         admissionNumber: user.admissionNumber,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        regNumber: user.regNumber,
+        fullName: user.fullName,
+        email: user.email,
+        institution: user.institution,
         phoneNumber: user.phoneNumber,
         role: user.role
       }
@@ -164,12 +257,12 @@ exports.getMe = async (req, res) => {
 // @access  Private
 exports.updateProfile = async (req, res) => {
   try {
-    const { firstName, lastName, phoneNumber } = req.body;
+    const { fullName, institution, phoneNumber } = req.body;
 
     const user = await User.findById(req.user.id);
-    
-    if (firstName) user.firstName = firstName;
-    if (lastName) user.lastName = lastName;
+
+    if (fullName) user.fullName = fullName;
+    if (institution) user.institution = institution;
     if (phoneNumber) user.phoneNumber = phoneNumber;
 
     await user.save();
@@ -180,6 +273,7 @@ exports.updateProfile = async (req, res) => {
       user: {
         id: user._id,
         admissionNumber: user.admissionNumber,
+        email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
         phoneNumber: user.phoneNumber,

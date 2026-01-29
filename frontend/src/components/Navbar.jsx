@@ -1,17 +1,40 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { FiMenu, FiX, FiUser, FiLogOut } from 'react-icons/fi';
+import { FiMenu, FiX, FiUser, FiLogOut, FiBell } from 'react-icons/fi';
 import { useState } from 'react';
 import useAuthStore from '../context/authStore';
+import { notificationAPI } from '../services/api';
+import { useEffect } from 'react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { isAuthenticated, user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchNotifications = async () => {
+      if (!isAuthenticated) return;
+      try {
+        const res = await notificationAPI.getAll();
+        if (mounted) {
+          setNotifications(res.data.notifications || []);
+          setUnreadCount((res.data.notifications || []).filter(n => !n.read).length);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    fetchNotifications();
+    const iv = setInterval(fetchNotifications, 30000);
+    return () => { mounted = false; clearInterval(iv); };
+  }, [isAuthenticated]);
 
   return (
     <nav className="bg-white shadow-lg">
@@ -54,9 +77,17 @@ const Navbar = () => {
                   </Link>
                 )}
                 
-                <div className="flex items-center space-x-2 ml-4">
-                  <FiUser className="text-gray-600" />
-                  <span className="text-gray-700">{user?.firstName}</span>
+                <div className="flex items-center space-x-3 ml-4">
+                  <div className="relative">
+                    <FiBell className="text-gray-600 cursor-pointer" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full px-1">{unreadCount}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <FiUser className="text-gray-600" />
+                    <span className="text-gray-700">{user?.firstName}</span>
+                  </div>
                 </div>
                 <button
                   onClick={handleLogout}

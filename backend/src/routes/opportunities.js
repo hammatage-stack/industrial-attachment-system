@@ -8,6 +8,7 @@ const {
   deleteOpportunity,
   getCategories
 } = require('../controllers/opportunityController');
+const { saveOpportunity, getSavedOpportunities, removeSavedOpportunity } = require('../controllers/opportunityController');
 const { protect, authorize } = require('../middleware/auth');
 
 router.get('/', getOpportunities);
@@ -18,5 +19,9 @@ router.get('/:id', getOpportunity);
 router.post('/', protect, authorize('admin', 'company'), createOpportunity);
 router.put('/:id', protect, authorize('admin', 'company'), updateOpportunity);
 router.delete('/:id', protect, authorize('admin', 'company'), deleteOpportunity);
+// Save / Unsave
+router.post('/:id/save', protect, saveOpportunity);
+router.delete('/:id/save', protect, removeSavedOpportunity);
+router.get('/saved/list', protect, getSavedOpportunities);
 
 module.exports = router;

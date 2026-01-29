@@ -5,9 +5,10 @@ import useAuthStore from '../context/authStore';
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    admissionNumber: '',
+    email: '',
     password: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [keepSignedIn, setKeepSignedIn] = useState(false);
   
@@ -40,33 +41,42 @@ const Login = () => {
         <div>
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900">Industrial Attachment System</h1>
-            <p className="text-sm text-gray-600 font-semibold mt-1">Student Login</p>
+            <p className="text-sm text-gray-600 font-semibold mt-1">Enter Login</p>
             <p className="text-xs text-gray-500 mt-1">Sign in to start your session</p>
           </div>
         </div>
         
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
           <input
-            id="admissionNumber"
-            name="admissionNumber"
-            type="text"
+            id="email"
+            name="email"
+            type="email"
             required
-            placeholder="Enter your Admission Number"
+            placeholder="Enter your email (Gmail)"
             className="w-full px-4 py-3 border-2 border-gray-300 focus:outline-none focus:border-gray-400 text-gray-700"
-            value={formData.admissionNumber}
+            value={formData.email}
             onChange={handleChange}
           />
           
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            placeholder="Enter your Password"
-            className="w-full px-4 py-3 border-2 border-gray-300 focus:outline-none focus:border-gray-400 text-gray-700"
-            value={formData.password}
-            onChange={handleChange}
-          />
+          <div className="relative">
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              required
+              placeholder="Enter your Password"
+              className="w-full px-4 py-3 border-2 border-gray-300 focus:outline-none focus:border-gray-400 text-gray-700"
+              value={formData.password}
+              onChange={handleChange}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-2 top-2 text-sm text-gray-600"
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
 
           <button
             type="submit"
@@ -89,7 +99,7 @@ const Login = () => {
                 Keep me signed in
               </label>
             </div>
-            <a href="#" className="text-sm text-gray-600 hover:text-gray-900">
+            <a href="/password-reset" className="text-sm text-gray-600 hover:text-gray-900">
               Forgot password?
             </a>
           </div>

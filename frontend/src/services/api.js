@@ -68,7 +68,10 @@ export const opportunityAPI = {
   create: (data) => api.post('/opportunities', data),
   update: (id, data) => api.put(`/opportunities/${id}`, data),
   updateStatus: (id, status) => api.put(`/opportunities/${id}/status`, { status }),
-  delete: (id) => api.delete(`/opportunities/${id}`)
+  delete: (id) => api.delete(`/opportunities/${id}`),
+  save: (id) => api.post(`/opportunities/${id}/save`),
+  unsave: (id) => api.delete(`/opportunities/${id}/save`),
+  getSaved: () => api.get('/opportunities/saved/list')
 };
 
 // ============ APPLICATIONS ============
@@ -79,6 +82,12 @@ export const applicationAPI = {
   update: (id, data) => api.put(`/applications/${id}`, data),
   updateStatus: (id, data) => api.put(`/applications/${id}/status`, data),
   getAll: (params) => api.get('/applications', { params })
+};
+
+// ============ NOTIFICATIONS ==========
+export const notificationAPI = {
+  getAll: () => api.get('/notifications'),
+  markRead: (id) => api.put(`/notifications/${id}/read`)
 };
 
 // ============ PAYMENTS ============

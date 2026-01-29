@@ -51,6 +51,7 @@ module.exports = {
   
   // Application Fee
   applicationFee: 500,
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
   
   // Environment
   nodeEnv: process.env.NODE_ENV || 'development'

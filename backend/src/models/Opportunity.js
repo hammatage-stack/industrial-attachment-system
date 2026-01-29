@@ -70,8 +70,8 @@ const opportunitySchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['active', 'closed', 'draft'],
-    default: 'active'
+    enum: ['open', 'closed', 'draft', 'archived'],
+    default: 'open'
   },
   postedBy: {
     type: mongoose.Schema.Types.ObjectId,

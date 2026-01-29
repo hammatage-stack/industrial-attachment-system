@@ -15,7 +15,7 @@ exports.getAllInstitutions = async (req, res) => {
       verified = true
     } = req.query;
 
-    const query = { status: 'active' };
+    const query = { status: 'open' };
 
     // Add verified filter if not admin
     if (!req.user || req.user.role !== 'admin') {

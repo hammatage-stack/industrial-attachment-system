@@ -4,31 +4,48 @@ const bcrypt = require('bcryptjs');
 const userSchema = new mongoose.Schema({
   admissionNumber: {
     type: String,
-    required: [true, 'Admission number is required'],
+    required: false,
     unique: true,
     sparse: true,
     trim: true,
     uppercase: true
   },
+  regNumber: {
+    type: String,
+    required: false,
+    unique: true,
+    sparse: true,
+    trim: true,
+    uppercase: true
+  },
+  fullName: {
+    type: String,
+    required: false,
+    trim: true
+  },
+  institution: {
+    type: String,
+    required: false,
+    trim: true
+  },
+  email: {
+    type: String,
+    required: false,
+    unique: true,
+    sparse: true,
+    trim: true,
+    lowercase: true
+  },
+  savedOpportunities: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Opportunity' }],
   password: {
     type: String,
     required: [true, 'Password is required'],
     minlength: 6,
     select: false
   },
-  firstName: {
-    type: String,
-    required: [true, 'First name is required'],
-    trim: true
-  },
-  lastName: {
-    type: String,
-    required: [true, 'Last name is required'],
-    trim: true
-  },
   phoneNumber: {
     type: String,
-    required: [true, 'Phone number is required'],
+    required: false,
     match: [/^254[0-9]{9}$/, 'Phone number must be in format 254XXXXXXXXX']
   },
   role: {
