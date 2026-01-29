@@ -1,6 +1,7 @@
 const Payment = require('../models/Payment');
 const Application = require('../models/Application');
 const config = require('../config/config');
+const emailService = require('../utils/emailService');
 
 // @desc    Validate and process manual MPesa payment
 // @route   POST /api/payments/validate-mpesa
@@ -215,6 +216,24 @@ exports.verifyPayment = async (req, res) => {
       application.status = 'submitted';
       application.submittedAt = new Date();
       await application.save();
+
+      // Notify admin about the new submission
+      try {
+        const User = require('../models/User');
+        const Opportunity = require('../models/Opportunity');
+        const applicant = await User.findById(application.applicant).select('firstName lastName email');
+        const opportunity = await Opportunity.findById(application.opportunity).select('title');
+        const applicantName = applicant ? `${applicant.firstName || ''} ${applicant.lastName || ''}`.trim() || applicant.email : 'Applicant';
+
+        await emailService.sendAdminPaymentNotification(
+          config.email.adminEmail,
+          applicantName,
+          payment.mpesaCode,
+          payment.amount
+        );
+      } catch (notifyErr) {
+        console.error('Admin notification error:', notifyErr.message || notifyErr);
+      }
     }
 
     res.status(200).json({
