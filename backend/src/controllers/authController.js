@@ -14,20 +14,28 @@ const generateToken = (id) => {
 // @access  Public
 exports.register = async (req, res) => {
   try {
-    const { email, password, firstName, lastName, phoneNumber } = req.body;
+    const { admissionNumber, password, firstName, lastName, phoneNumber } = req.body;
 
-    // Check if user exists
-    const userExists = await User.findOne({ email });
+    // Validate required fields
+    if (!admissionNumber || !password || !firstName || !lastName || !phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required: admissionNumber, password, firstName, lastName, phoneNumber'
+      });
+    }
+
+    // Check if user already exists
+    const userExists = await User.findOne({ admissionNumber: admissionNumber.toUpperCase().trim() });
     if (userExists) {
       return res.status(400).json({
         success: false,
-        message: 'User already exists with this email'
+        message: 'User already exists with this admission number'
       });
     }
 
     // Create user
     const user = await User.create({
-      email,
+      admissionNumber: admissionNumber.toUpperCase().trim(),
       password,
       firstName,
       lastName,
@@ -43,7 +51,7 @@ exports.register = async (req, res) => {
       token,
       user: {
         id: user._id,
-        email: user.email,
+        admissionNumber: user.admissionNumber,
         firstName: user.firstName,
         lastName: user.lastName,
         phoneNumber: user.phoneNumber,
@@ -65,18 +73,20 @@ exports.register = async (req, res) => {
 // @access  Public
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { admissionNumber, password } = req.body;
 
     // Validate input
-    if (!email || !password) {
+    if (!admissionNumber || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide email and password'
+        message: 'Please provide admission number and password'
       });
     }
 
-    // Find user and include password
-    const user = await User.findOne({ email }).select('+password');
+    // Find user by admission number and include password
+    const user = await User.findOne({ 
+      admissionNumber: admissionNumber.toString().toUpperCase().trim() 
+    }).select('+password');
     
     if (!user) {
       return res.status(401).json({
@@ -104,7 +114,7 @@ exports.login = async (req, res) => {
       token,
       user: {
         id: user._id,
-        email: user.email,
+        admissionNumber: user.admissionNumber,
         firstName: user.firstName,
         lastName: user.lastName,
         phoneNumber: user.phoneNumber,
@@ -132,12 +142,11 @@ exports.getMe = async (req, res) => {
       success: true,
       user: {
         id: user._id,
-        email: user.email,
+        admissionNumber: user.admissionNumber,
         firstName: user.firstName,
         lastName: user.lastName,
         phoneNumber: user.phoneNumber,
-        role: user.role,
-        isVerified: user.isVerified
+        role: user.role
       }
     });
   } catch (error) {
@@ -170,7 +179,7 @@ exports.updateProfile = async (req, res) => {
       message: 'Profile updated successfully',
       user: {
         id: user._id,
-        email: user.email,
+        admissionNumber: user.admissionNumber,
         firstName: user.firstName,
         lastName: user.lastName,
         phoneNumber: user.phoneNumber,

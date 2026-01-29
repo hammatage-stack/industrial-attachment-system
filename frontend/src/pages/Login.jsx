@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import useAuthStore from '../context/authStore';
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: '',
+    admissionNumber: '',
     password: ''
   });
   const [loading, setLoading] = useState(false);
+  const [keepSignedIn, setKeepSignedIn] = useState(false);
   
   const { login } = useAuthStore();
   const navigate = useNavigate();
@@ -34,64 +35,72 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-white">
+      <div className="max-w-md w-full space-y-6">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">
-              create a new account
-            </Link>
-          </p>
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-blue-900">NITA</h1>
+            <p className="text-sm text-orange-500 font-semibold">Student Portal</p>
+            <p className="text-xs text-gray-600 mt-1">Sign in to start your session</p>
+          </div>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
+        <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
+          <input
+            id="admissionNumber"
+            name="admissionNumber"
+            type="text"
+            required
+            placeholder="Enter your Admission Number"
+            className="w-full px-4 py-3 border-2 border-gray-300 focus:outline-none focus:border-gray-400 text-gray-700"
+            value={formData.admissionNumber}
+            onChange={handleChange}
+          />
+          
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            placeholder="Enter your Password"
+            className="w-full px-4 py-3 border-2 border-gray-300 focus:outline-none focus:border-gray-400 text-gray-700"
+            value={formData.password}
+            onChange={handleChange}
+          />
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Signing in...' : 'Login'}
+          </button>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <input
+                id="keepSignedIn"
+                type="checkbox"
+                checked={keepSignedIn}
+                onChange={(e) => setKeepSignedIn(e.target.checked)}
+                className="w-4 h-4 border-2 border-blue-500 rounded accent-blue-500 cursor-pointer"
+              />
+              <label htmlFor="keepSignedIn" className="ml-2 text-sm text-gray-700">
+                Keep me signed in
+              </label>
+            </div>
+            <a href="#" className="text-sm text-gray-600 hover:text-gray-900">
+              Forgot password?
+            </a>
           </div>
         </form>
+
+        <button
+          onClick={() => navigate('/')}
+          className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-4 transition"
+        >
+          Back Home
+        </button>
       </div>
     </div>
   );

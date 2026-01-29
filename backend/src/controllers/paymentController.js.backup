@@ -1,8 +1,7 @@
 const Payment = require('../models/Payment');
 const Application = require('../models/Application');
 const config = require('../config/config');
-const emailService = require('../utils/emailServiceEnhanced');
-const MpesaValidation = require('../utils/mpesaValidation');
+const emailService = require('../utils/emailService');
 
 // @desc    Validate and process manual MPesa payment
 // @route   POST /api/payments/validate-mpesa
@@ -305,32 +304,12 @@ exports.rejectPayment = async (req, res) => {
     if (application) {
       application.payment.status = 'failed';
       await application.save();
-
-      // Notify applicant about rejection
-      try {
-        const User = require('../models/User');
-        const applicant = await User.findById(application.applicant).select('firstName lastName email');
-        const applicantName = applicant ? `${applicant.firstName || ''} ${applicant.lastName || ''}`.trim() || applicant.email : 'Applicant';
-
-        await emailService.sendPaymentRejectionNotification(
-          applicant.email,
-          applicantName,
-          rejectionReason
-        );
-      } catch (notifyErr) {
-        console.error('Rejection notification error:', notifyErr.message || notifyErr);
-      }
     }
 
     res.status(200).json({
       success: true,
       message: 'Payment rejected',
-      payment: {
-        id: payment._id,
-        status: payment.status,
-        rejectionReason: payment.rejectionReason,
-        rejectedAt: payment.rejectedAt
-      }
+      payment
     });
   } catch (error) {
     console.error('Reject payment error:', error);

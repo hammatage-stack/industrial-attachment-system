@@ -2,13 +2,13 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  email: {
+  admissionNumber: {
     type: String,
-    required: [true, 'Email is required'],
+    required: [true, 'Admission number is required'],
     unique: true,
-    lowercase: true,
+    sparse: true,
     trim: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email']
+    uppercase: true
   },
   password: {
     type: String,
@@ -36,13 +36,6 @@ const userSchema = new mongoose.Schema({
     enum: ['student', 'admin', 'company'],
     default: 'student'
   },
-  isVerified: {
-    type: Boolean,
-    default: false
-  },
-  verificationToken: String,
-  resetPasswordToken: String,
-  resetPasswordExpire: Date,
   createdAt: {
     type: Date,
     default: Date.now

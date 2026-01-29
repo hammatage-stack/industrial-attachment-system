@@ -28,6 +28,7 @@ exports.getOpportunities = async (req, res) => {
     // Check if deadline has not passed
     query.applicationDeadline = { $gte: new Date() };
 
+    // Apply visibility rules: hide direct contact info for non-admins
     const opportunities = await Opportunity.find(query)
       .sort(sort)
       .limit(limit * 1)
@@ -36,12 +37,27 @@ exports.getOpportunities = async (req, res) => {
 
     const count = await Opportunity.countDocuments(query);
 
+    // If user is a student (or unauthenticated), remove direct contact fields
+    const userRole = req.user ? req.user.role : 'guest';
+    const sanitized = opportunities.map(op => {
+      const obj = op.toObject ? op.toObject() : op;
+      if (userRole !== 'admin' && userRole !== 'company') {
+        // Hide company contact fields and direct apply instructions
+        delete obj.companyEmail;
+        delete obj.companyPhone;
+        if (obj.howToApply) delete obj.howToApply;
+        // Indicate apply via IAS only
+        obj.applyVia = 'IAS';
+      }
+      return obj;
+    });
+
     res.status(200).json({
       success: true,
       count,
       totalPages: Math.ceil(count / limit),
       currentPage: parseInt(page),
-      opportunities
+      opportunities: sanitized
     });
   } catch (error) {
     console.error('Get opportunities error:', error);

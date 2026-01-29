@@ -19,7 +19,7 @@ describe('Payment Model Unit Tests', () => {
         'ABC12345678',    // Too long
         'abc1234567',     // Lowercase
         'ABC-123-456',    // Special chars
-        '1234567890',     // All numbers
+        'aaaaaaaaaa',     // All lowercase
       ];
 
       const codeRegex = /^[A-Z0-9]{10}$/;

@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const OTP = require('../models/OTP');
 const User = require('../models/User');
-const emailService = require('../utils/emailService');
+const emailService = require('../utils/emailServiceEnhanced');
 const smsService = require('../utils/smsService');
 const logger = require('../utils/logger');
 

@@ -25,13 +25,28 @@ module.exports = {
   },
   
   // Email Configuration
-  email: {
+  email: {  
+    // Provider selection: 'gmail' | 'zoho' | 'sendgrid' | 'custom'
+    provider: process.env.EMAIL_PROVIDER || 'gmail',
+    
+    // Generic SMTP Settings
     host: process.env.EMAIL_HOST,
     port: process.env.EMAIL_PORT || 587,
     user: process.env.EMAIL_USER,
     password: process.env.EMAIL_PASSWORD,
     from: process.env.EMAIL_FROM || 'industrialattachementsystem@gmail.com',
-    adminEmail: process.env.ADMIN_EMAIL || 'industrialattachementsystem@gmail.com'
+    adminEmail: process.env.ADMIN_EMAIL || 'industrialattachementsystem@gmail.com',
+    
+    // Provider-specific credentials (optional if using SMTP)
+    gmail: {
+      appPassword: process.env.GMAIL_APP_PASSWORD // Use App Password for Gmail
+    },
+    zoho: {
+      region: process.env.ZOHO_REGION || 'com' // zoho.com, zoho.in, etc.
+    },
+    sendgrid: {
+      apiKey: process.env.SENDGRID_API_KEY
+    }
   },
   
   // Application Fee

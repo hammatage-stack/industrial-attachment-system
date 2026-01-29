@@ -1,6 +1,6 @@
 const Schedule = require('../models/Schedule');
 const Application = require('../models/Application');
-const emailService = require('../utils/emailService');
+const emailService = require('../utils/emailServiceEnhanced');
 const logger = require('../utils/logger');
 
 /**

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import useAuthStore from '../context/authStore';
 
@@ -7,7 +7,7 @@ const Register = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    email: '',
+    admissionNumber: '',
     phoneNumber: '',
     password: '',
     confirmPassword: ''
@@ -58,127 +58,102 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-white">
+      <div className="max-w-md w-full space-y-6">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
-              Sign in
-            </Link>
-          </p>
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-blue-900">NITA</h1>
+            <p className="text-sm text-orange-500 font-semibold">Student Portal</p>
+            <p className="text-xs text-gray-600 mt-1">Create your account</p>
+          </div>
         </div>
         
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                First Name
-              </label>
-              <input
-                id="firstName"
-                name="firstName"
-                type="text"
-                required
-                className="input-field"
-                value={formData.firstName}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                Last Name
-              </label>
-              <input
-                id="lastName"
-                name="lastName"
-                type="text"
-                required
-                className="input-field"
-                value={formData.lastName}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email Address
-            </label>
+          <div className="grid grid-cols-2 gap-3">
             <input
-              id="email"
-              name="email"
-              type="email"
+              id="firstName"
+              name="firstName"
+              type="text"
               required
-              className="input-field"
-              value={formData.email}
+              placeholder="First Name"
+              className="w-full px-4 py-3 border-2 border-gray-300 focus:outline-none focus:border-gray-400 text-gray-700"
+              value={formData.firstName}
+              onChange={handleChange}
+            />
+            <input
+              id="lastName"
+              name="lastName"
+              type="text"
+              required
+              placeholder="Last Name"
+              className="w-full px-4 py-3 border-2 border-gray-300 focus:outline-none focus:border-gray-400 text-gray-700"
+              value={formData.lastName}
               onChange={handleChange}
             />
           </div>
 
-          <div>
-            <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
-              Phone Number (254XXXXXXXXX)
-            </label>
-            <input
-              id="phoneNumber"
-              name="phoneNumber"
-              type="tel"
-              required
-              placeholder="254712345678"
-              pattern="254[0-9]{9}"
-              className="input-field"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-            />
-            <p className="mt-1 text-xs text-gray-500">Format: 254XXXXXXXXX</p>
-          </div>
+          <input
+            id="admissionNumber"
+            name="admissionNumber"
+            type="text"
+            required
+            placeholder="Admission Number"
+            className="w-full px-4 py-3 border-2 border-gray-300 focus:outline-none focus:border-gray-400 text-gray-700"
+            value={formData.admissionNumber}
+            onChange={handleChange}
+          />
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              minLength="6"
-              className="input-field"
-              value={formData.password}
-              onChange={handleChange}
-            />
-          </div>
+          <input
+            id="phoneNumber"
+            name="phoneNumber"
+            type="tel"
+            required
+            placeholder="Phone Number (254XXXXXXXXX)"
+            pattern="254[0-9]{9}"
+            className="w-full px-4 py-3 border-2 border-gray-300 focus:outline-none focus:border-gray-400 text-gray-700"
+            value={formData.phoneNumber}
+            onChange={handleChange}
+          />
 
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-              Confirm Password
-            </label>
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              required
-              minLength="6"
-              className="input-field"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-            />
-          </div>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            minLength="6"
+            placeholder="Password"
+            className="w-full px-4 py-3 border-2 border-gray-300 focus:outline-none focus:border-gray-400 text-gray-700"
+            value={formData.password}
+            onChange={handleChange}
+          />
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full"
-            >
-              {loading ? 'Creating account...' : 'Create Account'}
-            </button>
-          </div>
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            required
+            minLength="6"
+            placeholder="Confirm Password"
+            className="w-full px-4 py-3 border-2 border-gray-300 focus:outline-none focus:border-gray-400 text-gray-700"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Creating account...' : 'Create Account'}
+          </button>
         </form>
+
+        <button
+          onClick={() => navigate('/login')}
+          className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-4 transition"
+        >
+          Back Home
+        </button>
       </div>
     </div>
   );
