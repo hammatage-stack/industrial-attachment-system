@@ -1,4 +1,5 @@
 const config = require('../config/config');
+const { enqueueEmail } = require('../queues/emailQueue');
 
 /**
  * Email Service with Development Mode
@@ -51,14 +52,27 @@ class EmailService {
   async sendEmail(to, subject, html) {
     try {
       if (this.transporter) {
-        const result = await this.transporter.sendMail({
-          from: config.email.from,
-          to,
-          subject,
-          html
-        });
-        console.log(`✅ Email sent to ${to}`);
-        return result;
+        try {
+          const result = await this.transporter.sendMail({
+            from: config.email.from,
+            to,
+            subject,
+            html
+          });
+          console.log(`✅ Email sent to ${to}`);
+          return result;
+        } catch (sendErr) {
+          console.error('❌ Immediate send failed, enqueuing for retry:', sendErr.message || sendErr);
+          // Enqueue for background retries
+          try {
+            await enqueueEmail(to, subject, html);
+            console.log(`🔁 Email enqueued for retry to ${to}`);
+            return { queued: true };
+          } catch (enqueueErr) {
+            console.error('❌ Failed to enqueue email:', enqueueErr.message || enqueueErr);
+            throw enqueueErr;
+          }
+        }
       } else {
         // Mock email in development
         if (this.isDevelopment) {
@@ -73,10 +87,18 @@ class EmailService {
           console.log(`📧 [MOCK EMAIL] To: ${to}\n   Subject: ${subject}`);
           return mockEmail;
         }
-        throw new Error('Email service not configured');
+        // If production but transporter not configured, try to enqueue anyway
+        try {
+          await enqueueEmail(to, subject, html);
+          console.log(`🔁 Email enqueued for retry (no transporter) to ${to}`);
+          return { queued: true };
+        } catch (enqueueErr) {
+          console.error('❌ Failed to enqueue email (no transporter):', enqueueErr.message || enqueueErr);
+          throw new Error('Email service not configured and enqueue failed');
+        }
       }
     } catch (error) {
-      console.error('❌ Error sending email:', error.message);
+      console.error('❌ Error handling email send:', error.message || error);
       if (!this.isDevelopment) throw error;
       return { error: error.message, status: 'failed' };
     }
