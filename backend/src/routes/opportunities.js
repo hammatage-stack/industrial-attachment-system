@@ -6,26 +6,34 @@ const {
   createOpportunity,
   updateOpportunity,
   deleteOpportunity,
-  getCategories
+  getCategories,
+  saveOpportunity,
+  getSavedOpportunities,
+  removeSavedOpportunity,
+  updateOpportunityStatus,
+  getMyPostedOpportunities,
+  getApplicationsForOpportunity
 } = require('../controllers/opportunityController');
-const { saveOpportunity, getSavedOpportunities, removeSavedOpportunity } = require('../controllers/opportunityController');
 const { protect, authorize } = require('../middleware/auth');
 
+// Public routes
 router.get('/', getOpportunities);
 router.get('/meta/categories', getCategories);
-router.get('/:id', getOpportunity);
 
-// Admin/Company routes
-router.post('/', protect, authorize('admin', 'company'), createOpportunity);
-router.put('/:id', protect, authorize('admin', 'company'), updateOpportunity);
-router.put('/:id/status', protect, authorize('admin', 'company'), require('../controllers/opportunityController').updateOpportunityStatus);
-router.delete('/:id', protect, authorize('admin', 'company'), deleteOpportunity);
-// Company-specific
-router.get('/company/mine', protect, authorize('company', 'admin'), require('../controllers/opportunityController').getMyPostedOpportunities);
-router.get('/:id/applications', protect, authorize('company', 'admin'), require('../controllers/opportunityController').getApplicationsForOpportunity);
-// Save / Unsave
+// Save / Unsave (more specific, before :id)
 router.post('/:id/save', protect, saveOpportunity);
 router.delete('/:id/save', protect, removeSavedOpportunity);
 router.get('/saved/list', protect, getSavedOpportunities);
 
-module.exports = router;
+// Company-specific routes (more specific, before :id)
+router.get('/company/mine', protect, authorize('company', 'admin'), getMyPostedOpportunities);
+router.get('/:id/applications', protect, authorize('company', 'admin'), getApplicationsForOpportunity);
+
+// Generic routes (least specific, last)
+router.get('/:id', getOpportunity);
+router.post('/', protect, authorize('admin', 'company'), createOpportunity);
+router.put('/:id/status', protect, authorize('admin', 'company'), updateOpportunityStatus);
+router.put('/:id', protect, authorize('admin', 'company'), updateOpportunity);
+router.delete('/:id', protect, authorize('admin', 'company'), deleteOpportunity);
+
+module.exports = router;module.exports = router;
