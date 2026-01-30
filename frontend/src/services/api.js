@@ -126,7 +126,12 @@ export const adminAPI = {
   getOpportunityDetail: (id) => api.get(`/admin/opportunities/${id}`),
   getApplicationFull: (id) => api.get(`/admin/applications/${id}/full`),
   getSystemLogs: (params) => api.get('/admin/logs', { params }),
-  generateReport: (type, params) => api.get(`/admin/reports/${type}`, { params })
+  generateReport: (type, params) => api.get(`/admin/reports/${type}`, { params }),
+  // Payment Verification
+  getPendingPayments: () => api.get('/admin/payments/pending'),
+  getPaymentStats: () => api.get('/admin/payments/stats'),
+  verifyPayment: (applicationId, data) => api.post(`/admin/payments/${applicationId}/verify`, data),
+  rejectPayment: (applicationId, data) => api.post(`/admin/payments/${applicationId}/reject`, data)
 };
 
 export default api;

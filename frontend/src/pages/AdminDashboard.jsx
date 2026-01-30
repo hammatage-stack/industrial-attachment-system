@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { adminAPI, paymentAPI, applicationAPI } from '../services/api';
+import { toast } from 'react-hot-toast';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState(null);
+  const [paymentStats, setPaymentStats] = useState(null);
+  const [pendingPayments, setPendingPayments] = useState([]);
   const [payments, setPayments] = useState([]);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [rejectReason, setRejectReason] = useState({});
+  const [showRejectForm, setShowRejectForm] = useState({});
 
   useEffect(() => {
     fetchDashboardStats();
@@ -30,14 +35,26 @@ const AdminDashboard = () => {
   const fetchPendingPayments = async () => {
     setLoading(true);
     try {
-      const { data } = await paymentAPI.getAll({ status: 'pending', limit: 50 });
+      const { data } = await adminAPI.getPendingPayments();
       if (data.success) {
-        setPayments(data.payments);
+        setPendingPayments(data.applications || []);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Error fetching payments');
+      setError(err.response?.data?.message || 'Error fetching pending payments');
+      toast.error('Failed to fetch pending payments');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPaymentStats = async () => {
+    try {
+      const { data } = await adminAPI.getPaymentStats();
+      if (data.success) {
+        setPaymentStats(data);
+      }
+    } catch (err) {
+      console.error('Error fetching payment stats:', err);
     }
   };
 
@@ -57,32 +74,34 @@ const AdminDashboard = () => {
 
   const handleVerifyPayment = async (paymentId) => {
     try {
-      const { data } = await paymentAPI.verify(paymentId, {
-        verificationNotes: 'Manually verified'
-      });
+      const { data } = await adminAPI.verifyPayment(paymentId, {});
       if (data.success) {
-        alert('Payment verified successfully');
+        toast.success('Payment verified successfully');
         fetchPendingPayments();
+        fetchPaymentStats();
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Error verifying payment');
+      toast.error(err.response?.data?.message || 'Error verifying payment');
     }
   };
 
-  const handleRejectPayment = async (paymentId) => {
-    const reason = prompt('Enter rejection reason:');
+  const handleRejectPayment = async (applicationId) => {
+    const reason = rejectReason[applicationId] || prompt('Enter rejection reason:');
     if (!reason) return;
 
     try {
-      const { data } = await paymentAPI.reject(paymentId, {
+      const { data } = await adminAPI.rejectPayment(applicationId, {
         rejectionReason: reason
       });
       if (data.success) {
-        alert('Payment rejected');
+        toast.success('Payment rejected successfully');
+        setRejectReason({ ...rejectReason, [applicationId]: '' });
+        setShowRejectForm({ ...showRejectForm, [applicationId]: false });
         fetchPendingPayments();
+        fetchPaymentStats();
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Error rejecting payment');
+      toast.error(err.response?.data?.message || 'Error rejecting payment');
     }
   };
 
@@ -90,6 +109,7 @@ const AdminDashboard = () => {
     setActiveTab(tab);
     if (tab === 'payments') {
       fetchPendingPayments();
+      fetchPaymentStats();
     } else if (tab === 'applications') {
       fetchApplications();
     }
@@ -268,62 +288,122 @@ const AdminDashboard = () => {
 
         {/* Payments Tab */}
         {activeTab === 'payments' && !loading && (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Applicant</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">M-Pesa Code</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Amount</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Date</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {payments.map(payment => (
-                    <tr key={payment._id} className="border-t hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm">
-                        {payment.user?.firstName} {payment.user?.lastName}
-                      </td>
-                      <td className="px-4 py-3 text-sm font-mono">{payment.mpesaCode}</td>
-                      <td className="px-4 py-3 text-sm">KES {payment.amount}</td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          payment.status === 'verified' ? 'bg-green-100 text-green-800' :
-                          payment.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                          payment.status === 'duplicate' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-blue-100 text-blue-800'
-                        }`}>
-                          {payment.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        {new Date(payment.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        {payment.status === 'pending' && (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleVerifyPayment(payment._id)}
-                              className="text-green-600 hover:text-green-800 font-medium"
-                            >
-                              Verify
-                            </button>
-                            <button
-                              onClick={() => handleRejectPayment(payment._id)}
-                              className="text-red-600 hover:text-red-800 font-medium"
-                            >
-                              Reject
-                            </button>
-                          </div>
-                        )}
-                      </td>
+          <div>
+            {/* Payment Stats */}
+            {paymentStats && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                  <div className="text-2xl font-bold text-blue-600">{paymentStats.pending || 0}</div>
+                  <div className="text-sm text-blue-700">Pending Review</div>
+                </div>
+                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                  <div className="text-2xl font-bold text-green-600">{paymentStats.verified || 0}</div>
+                  <div className="text-sm text-green-700">Verified</div>
+                </div>
+                <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                  <div className="text-2xl font-bold text-red-600">{paymentStats.rejected || 0}</div>
+                  <div className="text-sm text-red-700">Rejected</div>
+                </div>
+                <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                  <div className="text-2xl font-bold text-purple-600">KES {paymentStats.totalAmount || 0}</div>
+                  <div className="text-sm text-purple-700">Total Amount</div>
+                </div>
+              </div>
+            )}
+
+            {/* Pending Payments Table */}
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="px-4 py-3 bg-gray-50 border-b">
+                <h3 className="font-semibold text-gray-800">Pending Payments ({pendingPayments.length})</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Applicant</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Email</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Opportunity</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">M-Pesa Code</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Amount</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Submitted</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {pendingPayments.length > 0 ? (
+                      pendingPayments.map(app => (
+                        <tr key={app._id} className="border-t hover:bg-gray-50">
+                          <td className="px-4 py-3 text-sm font-medium">
+                            {app.applicant?.firstName} {app.applicant?.lastName}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {app.applicant?.email}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {app.opportunity?.title}
+                          </td>
+                          <td className="px-4 py-3 text-sm font-mono text-gray-600">
+                            {app.payment?.mpesaReceiptNumber || '-'}
+                          </td>
+                          <td className="px-4 py-3 text-sm font-semibold">
+                            KES {app.payment?.amount || 0}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-600">
+                            {new Date(app.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            <div className="flex flex-col gap-2">
+                              <button
+                                onClick={() => handleVerifyPayment(app._id)}
+                                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition"
+                              >
+                                Verify
+                              </button>
+                              <button
+                                onClick={() => setShowRejectForm({ ...showRejectForm, [app._id]: !showRejectForm[app._id] })}
+                                className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition"
+                              >
+                                Reject
+                              </button>
+                              {showRejectForm[app._id] && (
+                                <div className="mt-2 p-2 bg-red-50 rounded border border-red-200">
+                                  <input
+                                    type="text"
+                                    placeholder="Rejection reason"
+                                    value={rejectReason[app._id] || ''}
+                                    onChange={(e) => setRejectReason({ ...rejectReason, [app._id]: e.target.value })}
+                                    className="w-full px-2 py-1 border border-gray-300 rounded mb-2 text-sm"
+                                  />
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleRejectPayment(app._id)}
+                                      className="flex-1 px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                                    >
+                                      Confirm
+                                    </button>
+                                    <button
+                                      onClick={() => setShowRejectForm({ ...showRejectForm, [app._id]: false })}
+                                      className="flex-1 px-2 py-1 bg-gray-400 text-white text-xs rounded hover:bg-gray-500"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="7" className="px-4 py-8 text-center text-gray-500">
+                          No pending payments
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
