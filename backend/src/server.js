@@ -14,6 +14,11 @@ const institutionRoutes = require('./routes/institutions');
 const paymentRoutes = require('./routes/payments');
 const adminRoutes = require('./routes/admin');
 const notificationRoutes = require('./routes/notifications');
+const messagesRoutes = require('./routes/messages');
+const scheduleRoutes = require('./routes/schedules');
+const searchRoutes = require('./routes/search');
+const companyPortalRoutes = require('./routes/companyPortal');
+const twoFactorRoutes = require('./routes/twoFactor');
 
 // Initialize express app
 const app = express();
@@ -58,6 +63,11 @@ app.use('/api/institutions', institutionRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/messages', messagesRoutes);
+app.use('/api/schedules', scheduleRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/company-portal', companyPortalRoutes);
+app.use('/api/two-factor', twoFactorRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -90,6 +100,19 @@ try {
   app.set('io', io);
 } catch (e) {
   console.error('Socket init failed', e);
+}
+
+// Start periodic opportunity manager: auto-close expired/full opportunities
+try {
+  const { autoUpdateOpportunities } = require('./utils/opportunityManager');
+  // Run once at startup
+  autoUpdateOpportunities().catch((e) => console.error('Initial opportunity update failed', e));
+  // Then run every hour
+  setInterval(() => {
+    autoUpdateOpportunities().catch((e) => console.error('Scheduled opportunity update failed', e));
+  }, 60 * 60 * 1000);
+} catch (e) {
+  console.error('Opportunity manager failed to start', e);
 }
 
 module.exports = app;

@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { FiMenu, FiX, FiUser, FiLogOut, FiBell, FiBriefcase } from 'react-icons/fi';
+import { FiMenu, FiX, FiUser, FiLogOut, FiBell, FiBriefcase, FiMessageSquare } from 'react-icons/fi';
 import { useState } from 'react';
 import { io } from 'socket.io-client';
 import useAuthStore from '../context/authStore';
@@ -83,6 +83,12 @@ const Navbar = () => {
                 <Link to="/dashboard" className="px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition">
                   Dashboard
                 </Link>
+                    <Link to="/messages" className="px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition">
+                      Messages
+                    </Link>
+                    <Link to="/opportunities/create" className="px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition">
+                      Post Opportunity
+                    </Link>
                 <Link to="/my-applications" className="px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition">
                   My Applications
                 </Link>
@@ -93,6 +99,11 @@ const Navbar = () => {
                 {user?.role === 'admin' && (
                   <Link to="/admin" className="px-3 py-2 rounded-lg text-purple-600 hover:bg-purple-50 transition font-semibold">
                     Admin
+                  </Link>
+                )}
+                {user?.role === 'company' && (
+                  <Link to="/company" className="px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition">
+                    Company
                   </Link>
                 )}
               </>
@@ -161,22 +172,7 @@ const Navbar = () => {
               </>
             )}
 
-            {!isAuthenticated && (
-              <div className="hidden sm:flex items-center space-x-3">
-                <Link
-                  to="/login"
-                  className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/register"
-                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition transform hover:scale-105 active:scale-95"
-                >
-                  Sign Up
-                </Link>
-              </div>
-            )}
+            {/* Desktop right-side login/signup removed to avoid duplicate navigation */}
 
             {/* Mobile menu button */}
             <div className="md:hidden">
@@ -232,6 +228,13 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                 >
                   Institutions
+                </Link>
+                <Link
+                  to="/messages"
+                  className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Messages
                 </Link>
                 
                 {user?.role === 'admin' && (

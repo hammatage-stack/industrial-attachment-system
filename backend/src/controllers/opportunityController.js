@@ -303,3 +303,44 @@ exports.getSavedOpportunities = async (req, res) => {
     res.status(500).json({ success: false, message: 'Error fetching saved opportunities' });
   }
 };
+
+// @desc Get opportunities posted by current company
+// @route GET /api/opportunities/company/mine
+// @access Private (company/admin)
+exports.getMyPostedOpportunities = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const opportunities = await Opportunity.find({ postedBy: userId })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, opportunities });
+  } catch (error) {
+    console.error('Get my posted opportunities error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching opportunities' });
+  }
+};
+
+// @desc Get applications for a specific opportunity (company only)
+// @route GET /api/opportunities/:id/applications
+// @access Private (company/admin)
+exports.getApplicationsForOpportunity = async (req, res) => {
+  try {
+    const oppId = req.params.id;
+    const opportunity = await Opportunity.findById(oppId);
+    if (!opportunity) return res.status(404).json({ success: false, message: 'Opportunity not found' });
+    // Only allow owner company or admin
+    if (opportunity.postedBy.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const Application = require('../models/Application');
+    const applications = await Application.find({ opportunity: oppId })
+      .populate('applicant', 'firstName lastName email phoneNumber institution')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, applications });
+  } catch (error) {
+    console.error('Get applications for opportunity error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching applications' });
+  }
+};

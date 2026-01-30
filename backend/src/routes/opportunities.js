@@ -19,6 +19,9 @@ router.get('/:id', getOpportunity);
 router.post('/', protect, authorize('admin', 'company'), createOpportunity);
 router.put('/:id', protect, authorize('admin', 'company'), updateOpportunity);
 router.delete('/:id', protect, authorize('admin', 'company'), deleteOpportunity);
+// Company-specific
+router.get('/company/mine', protect, authorize('company', 'admin'), require('../controllers/opportunityController').getMyPostedOpportunities);
+router.get('/:id/applications', protect, authorize('company', 'admin'), require('../controllers/opportunityController').getApplicationsForOpportunity);
 // Save / Unsave
 router.post('/:id/save', protect, saveOpportunity);
 router.delete('/:id/save', protect, removeSavedOpportunity);

@@ -74,6 +74,12 @@ export const opportunityAPI = {
   getSaved: () => api.get('/opportunities/saved/list')
 };
 
+// Company-specific opportunity endpoints
+export const companyAPI = {
+  getMyOpportunities: () => api.get('/opportunities/company/mine'),
+  getApplicationsForOpportunity: (id) => api.get(`/opportunities/${id}/applications`)
+};
+
 // ============ APPLICATIONS ============
 export const applicationAPI = {
   create: (data) => api.post('/applications', data),

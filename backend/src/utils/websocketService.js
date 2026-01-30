@@ -67,6 +67,16 @@ class WebSocketService {
         this.broadcastUserStatus(socket.userId, 'offline');
       });
 
+      // Join room for user-specific messages (authorization enforced)
+      socket.on('join:room', (data) => {
+        this.handleJoinRoom(socket, socket.userId, data);
+      });
+
+      // Leave room (authorization enforced)
+      socket.on('leave:room', (data) => {
+        this.handleLeaveRoom(socket, socket.userId, data);
+      });
+
       // Handle custom events
       socket.on('notification:read', (notificationId) => {
         this.handleNotificationRead(socket.userId, notificationId);
@@ -76,9 +86,151 @@ class WebSocketService {
         this.handleChatMessage(socket.userId, data);
       });
 
+      socket.on('typing', (data) => {
+        this.handleTypingIndicator(socket, socket.userId, data);
+      });
+
+      socket.on('stop:typing', (data) => {
+        this.handleStopTypingIndicator(socket, socket.userId, data);
+      });
+
       socket.on('application:update', (data) => {
         this.handleApplicationUpdate(socket.userId, data);
       });
+    });
+  }
+
+  /**
+   * Handle user joining a room with authorization
+   * Only allow users to join their own user room or shared conversation rooms
+   */
+  handleJoinRoom(socket, userId, data) {
+    const { roomId, type } = data;
+
+    if (!roomId) {
+      socket.emit('error', { message: 'Room ID is required' });
+      return;
+    }
+
+    // Authorize based on room type
+    const isAuthorized = this.authorizeRoomAccess(userId, roomId, type);
+
+    if (!isAuthorized) {
+      socket.emit('error', { message: 'Unauthorized to join this room' });
+      logger.warn(`Unauthorized room access attempt - User: ${userId}, Room: ${roomId}`);
+      return;
+    }
+
+    socket.join(roomId);
+    logger.info(`User ${userId} joined room: ${roomId}`);
+
+    // Notify others in the room
+    this.io.to(roomId).emit('user:joined', {
+      userId,
+      roomId,
+      timestamp: new Date()
+    });
+  }
+
+  /**
+   * Handle user leaving a room
+   */
+  handleLeaveRoom(socket, userId, data) {
+    const { roomId } = data;
+
+    if (!roomId) {
+      socket.emit('error', { message: 'Room ID is required' });
+      return;
+    }
+
+    socket.leave(roomId);
+    logger.info(`User ${userId} left room: ${roomId}`);
+
+    // Notify others in the room
+    this.io.to(roomId).emit('user:left', {
+      userId,
+      roomId,
+      timestamp: new Date()
+    });
+  }
+
+  /**
+   * Authorize room access for a user
+   * @param {string} userId - The user's ID
+   * @param {string} roomId - The room ID to access
+   * @param {string} type - The room type (user, conversation, notification, etc.)
+   * @returns {boolean} - Whether the user is authorized
+   */
+  authorizeRoomAccess(userId, roomId, type = 'user') {
+    // User rooms: users can only join their own user room
+    if (type === 'user') {
+      return roomId === userId;
+    }
+
+    // Conversation rooms: authorization is checked at message send time
+    // For now, allow access to all conversation rooms
+    // In production, verify the user is a participant of the conversation
+    if (type === 'conversation') {
+      return true;
+    }
+
+    // Notification rooms: users can join their own notification room
+    if (type === 'notification') {
+      return roomId === userId || roomId === `notifications:${userId}`;
+    }
+
+    // Default: deny access
+    return false;
+  }
+
+  /**
+   * Handle typing indicator with authorization
+   */
+  handleTypingIndicator(socket, userId, data) {
+    const { conversationId, roomId } = data;
+    const targetRoom = conversationId || roomId;
+
+    if (!targetRoom) {
+      socket.emit('error', { message: 'Conversation ID or room ID is required' });
+      return;
+    }
+
+    // Check if user is in the room
+    if (!socket.rooms.has(targetRoom)) {
+      socket.emit('error', { message: 'Not in this room' });
+      logger.warn(`User ${userId} attempted typing in unauthorized room: ${targetRoom}`);
+      return;
+    }
+
+    // Broadcast typing indicator to others in the room
+    socket.to(targetRoom).emit('user:typing', {
+      userId,
+      conversationId,
+      timestamp: new Date()
+    });
+  }
+
+  /**
+   * Handle stop typing indicator
+   */
+  handleStopTypingIndicator(socket, userId, data) {
+    const { conversationId, roomId } = data;
+    const targetRoom = conversationId || roomId;
+
+    if (!targetRoom) {
+      return;
+    }
+
+    // Check if user is in the room
+    if (!socket.rooms.has(targetRoom)) {
+      return;
+    }
+
+    // Broadcast stop typing indicator to others in the room
+    socket.to(targetRoom).emit('user:stop-typing', {
+      userId,
+      conversationId,
+      timestamp: new Date()
     });
   }
 

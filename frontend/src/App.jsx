@@ -9,6 +9,7 @@ import Register from './pages/Register';
 import Opportunities from './pages/Opportunities';
 import OpportunityDetail from './pages/OpportunityDetail';
 import Apply from './pages/Apply';
+import CreateOpportunity from './pages/CreateOpportunity';
 import PasswordResetRequest from './pages/PasswordResetRequest';
 import PasswordReset from './pages/PasswordReset';
 import Dashboard from './pages/Dashboard';
@@ -16,6 +17,8 @@ import MyApplications from './pages/MyApplications';
 import InstitutionDirectory from './pages/InstitutionDirectory';
 import Payment from './pages/Payment';
 import AdminDashboard from './pages/AdminDashboard';
+import Messages from './pages/Messages';
+import CompanyDashboard from './pages/CompanyDashboard';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Terms from './pages/Terms';
@@ -51,9 +54,12 @@ function App() {
           
           {/* Protected Routes */}
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+          <Route path="/company" element={<PrivateRoute><CompanyDashboard /></PrivateRoute>} />
           <Route path="/apply/:opportunityId" element={<PrivateRoute><Apply /></PrivateRoute>} />
+          <Route path="/opportunities/create" element={<PrivateRoute><CreateOpportunity /></PrivateRoute>} />
           <Route path="/my-applications" element={<PrivateRoute><MyApplications /></PrivateRoute>} />
           <Route path="/payment" element={<PrivateRoute><Payment /></PrivateRoute>} />
+          <Route path="/messages" element={<PrivateRoute><Messages /></PrivateRoute>} />
           
           {/* Admin Routes - Only accessible by admins */}
           <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
