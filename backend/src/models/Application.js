@@ -112,7 +112,7 @@ const applicationSchema = new mongoose.Schema({
   payment: {
     status: {
       type: String,
-      enum: ['pending', 'completed', 'failed'],
+      enum: ['pending', 'verified', 'failed', 'rejected'],
       default: 'pending'
     },
     amount: {
@@ -120,17 +120,45 @@ const applicationSchema = new mongoose.Schema({
       default: 500
     },
     transactionId: String,
-    mpesaReceiptNumber: String,
+    mpesaReceiptNumber: {
+      type: String,
+      unique: true,
+      sparse: true
+    },
     phoneNumber: String,
-    paymentDate: Date
+    paymentDate: Date,
+    verifiedAt: Date,
+    verifiedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }
   },
   
   // Application Status
   status: {
     type: String,
-    enum: ['draft', 'submitted', 'under-review', 'shortlisted', 'accepted', 'rejected'],
+    enum: ['draft', 'submitted', 'payment-submitted', 'payment-verified', 'under-review', 'shortlisted', 'accepted', 'rejected'],
     default: 'draft'
   },
+  
+  // Timeline with timestamps for each status change
+  timeline: [
+    {
+      status: {
+        type: String,
+        enum: ['submitted', 'payment-submitted', 'payment-verified', 'under-review', 'shortlisted', 'accepted', 'rejected']
+      },
+      timestamp: {
+        type: Date,
+        default: Date.now
+      },
+      updatedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+      notes: String
+    }
+  ],
   
   submittedAt: Date,
   reviewedAt: Date,
@@ -149,7 +177,9 @@ const applicationSchema = new mongoose.Schema({
 });
 
 // Index for querying
-applicationSchema.index({ applicant: 1, opportunity: 1 });
+applicationSchema.index({ applicant: 1, opportunity: 1 }, { unique: true }); // Prevent duplicate applications
 applicationSchema.index({ status: 1 });
+applicationSchema.index({ 'payment.mpesaReceiptNumber': 1 }, { sparse: true }); // Unique MPesa code
+applicationSchema.index({ email: 1 }); // Email index for duplicate checks
 
 module.exports = mongoose.model('Application', applicationSchema);

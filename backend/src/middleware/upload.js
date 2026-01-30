@@ -4,23 +4,24 @@ const path = require('path');
 // Configure storage
 const storage = multer.memoryStorage();
 
-// File filter
+// File filter - Allow PDF and DOCX only
 const fileFilter = (req, file, cb) => {
-  // Allowed file types
-  const allowedTypes = /pdf|doc|docx|jpeg|jpg|png/;
+  // Allowed file types for resume/documents
+  const allowedMimes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  const allowedExtensions = /pdf|docx/;
   
   // Check extension
-  const extname = allowedTypes.test(
+  const extname = allowedExtensions.test(
     path.extname(file.originalname).toLowerCase()
   );
   
   // Check mime type
-  const mimetype = allowedTypes.test(file.mimetype);
+  const mimetype = allowedMimes.includes(file.mimetype);
 
   if (mimetype && extname) {
     return cb(null, true);
   } else {
-    cb(new Error('Only PDF, DOC, DOCX, JPG, JPEG, and PNG files are allowed'));
+    cb(new Error('Only PDF and DOCX files are allowed'));
   }
 };
 
@@ -28,7 +29,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 2 * 1024 * 1024 // 2MB limit
   },
   fileFilter: fileFilter
 });

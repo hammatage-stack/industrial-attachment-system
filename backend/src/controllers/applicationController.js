@@ -13,33 +13,69 @@ exports.createApplication = async (req, res) => {
     const allowedStatuses = ['draft', 'pending', 'submitted'];
     const statusFromClient = req.body.status && allowedStatuses.includes(req.body.status) ? req.body.status : 'draft';
 
+    // Prevent duplicate applications (same student + same opportunity)
+    if (req.body.opportunity) {
+      const existing = await Application.findOne({
+        applicant: req.user.id,
+        opportunity: req.body.opportunity
+      });
+      if (existing) {
+        return res.status(400).json({
+          success: false,
+          message: 'You have already applied for this opportunity. Only one application per opportunity allowed.'
+        });
+      }
+    }
+
+    // Prevent duplicate MPesa transaction codes
+    if (req.body.payment?.mpesaReceiptNumber) {
+      const existingPayment = await Application.findOne({
+        'payment.mpesaReceiptNumber': req.body.payment.mpesaReceiptNumber
+      });
+      if (existingPayment) {
+        return res.status(400).json({
+          success: false,
+          message: 'This MPesa transaction code has already been used. Duplicate payments are not allowed.'
+        });
+      }
+    }
+
     const applicationData = {
       ...req.body,
       applicant: req.user.id,
       status: statusFromClient
     };
-    
-      // Prevent duplicate applications
-      if (applicationData.opportunity) {
-        const existing = await Application.findOne({ applicant: req.user.id, opportunity: applicationData.opportunity });
-        if (existing) {
-          return res.status(400).json({ success: false, message: 'You have already applied for this opportunity.' });
-        }
-      }
 
     if (statusFromClient === 'pending' || statusFromClient === 'submitted') {
-      applicationData.appliedAt = new Date();
+      applicationData.submittedAt = new Date();
+      // Initialize timeline
+      applicationData.timeline = [{
+        status: 'submitted',
+        timestamp: new Date(),
+        updatedBy: req.user.id,
+        notes: 'Application submitted'
+      }];
     }
 
     const application = await Application.create(applicationData);
 
     res.status(201).json({
       success: true,
-      message: 'Application draft saved',
+      message: 'Application created successfully',
       application
     });
   } catch (error) {
     console.error('Create application error:', error);
+    
+    // Handle duplicate key error
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      return res.status(400).json({
+        success: false,
+        message: `Duplicate ${field}: ${error.keyValue[field]}. Each ${field} can only be used once.`
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Error creating application',
@@ -186,19 +222,51 @@ exports.mpesaCallback = async (req, res) => {
       const mpesaReceiptNumber = metadata.find(item => item.Name === 'MpesaReceiptNumber')?.Value;
       const amount = metadata.find(item => item.Name === 'Amount')?.Value;
 
-      application.payment.status = 'completed';
+      // Check for duplicate MPesa code
+      const duplicatePayment = await Application.findOne({
+        'payment.mpesaReceiptNumber': mpesaReceiptNumber,
+        _id: { $ne: application._id }
+      });
+
+      if (duplicatePayment) {
+        application.payment.status = 'rejected';
+        application.status = 'rejected';
+        application.rejectionReason = 'Duplicate MPesa transaction code detected';
+        application.timeline.push({
+          status: 'rejected',
+          timestamp: new Date(),
+          notes: 'Duplicate payment detected'
+        });
+        await application.save();
+        return res.status(200).json({ ResultCode: 0, ResultDesc: 'Duplicate payment rejected' });
+      }
+
+      application.payment.status = 'pending'; // Changed from 'completed' to 'pending' for admin review
       application.payment.mpesaReceiptNumber = mpesaReceiptNumber;
       application.payment.amount = amount;
       application.payment.paymentDate = new Date();
-      application.status = 'submitted';
+      application.status = 'payment-submitted';
       application.submittedAt = new Date();
+
+      // Add to timeline
+      application.timeline.push({
+        status: 'payment-submitted',
+        timestamp: new Date(),
+        notes: `Payment received: ${mpesaReceiptNumber}`
+      });
 
       await application.save();
 
-      console.log('Payment completed for application:', application._id);
+      console.log('Payment submitted for application:', application._id);
     } else {
       // Payment failed
       application.payment.status = 'failed';
+      application.status = 'rejected';
+      application.timeline.push({
+        status: 'rejected',
+        timestamp: new Date(),
+        notes: `Payment failed: ${ResultDesc}`
+      });
       await application.save();
 
       console.log('Payment failed for application:', application._id, ResultDesc);
