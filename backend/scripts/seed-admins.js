@@ -22,7 +22,6 @@ async function seedAdminUsers() {
     // Admin credentials
     const admins = [
       {
-        admissionNumber: 'ADMIN001',
         fullName: 'Super Admin',
         email: 'admin001@gmail.com',
         phoneNumber: '254712345678',
@@ -30,7 +29,6 @@ async function seedAdminUsers() {
         role: 'admin'
       },
       {
-        admissionNumber: 'ADMIN002',
         fullName: 'Admin User',
         email: 'admin002@gmail.com',
         phoneNumber: '254712345679',
@@ -50,16 +48,15 @@ async function seedAdminUsers() {
     }
 
     for (const admin of admins) {
-      const adminExists = await User.findOne({ admissionNumber: admin.admissionNumber });
+      const adminExists = await User.findOne({ email: admin.email });
       
       if (adminExists) {
-        console.log(`⏭️  Admin with admission number ${admin.admissionNumber} already exists. Skipping...`);
+        console.log(`⏭️  Admin with email ${admin.email} already exists. Skipping...`);
         continue;
       }
 
       const newAdmin = await User.create(admin);
       console.log(`✅ Admin user created`);
-      console.log(`   Admission Number: ${admin.admissionNumber}`);
       console.log(`   Email: ${admin.email}`);
       console.log(`   Password: ${admin.password}`);
       console.log(`   Name: ${admin.fullName}`);
@@ -68,7 +65,7 @@ async function seedAdminUsers() {
     console.log('\n✨ Admin seeding completed!\n');
     console.log('📝 Admin Credentials:');
     admins.forEach(admin => {
-      console.log(`   - Admission: ${admin.admissionNumber} | Password: ${admin.password}`);
+      console.log(`   - Email: ${admin.email} | Password: ${admin.password}`);
     });
     console.log();
 

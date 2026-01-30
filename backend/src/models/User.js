@@ -2,14 +2,6 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  admissionNumber: {
-    type: String,
-    required: false,
-    unique: true,
-    sparse: true,
-    trim: true,
-    uppercase: true
-  },
   regNumber: {
     type: String,
     required: false,

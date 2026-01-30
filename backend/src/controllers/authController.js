@@ -85,7 +85,6 @@ exports.register = async (req, res) => {
       token,
       user: {
         id: user._id,
-        admissionNumber: user.admissionNumber,
         fullName: user.fullName,
         email: user.email,
         institution: user.institution,
@@ -217,7 +216,6 @@ exports.login = async (req, res) => {
       token,
       user: {
         id: user._id,
-        admissionNumber: user.admissionNumber,
         fullName: user.fullName,
         email: user.email,
         institution: user.institution,
@@ -246,7 +244,6 @@ exports.getMe = async (req, res) => {
       success: true,
       user: {
         id: user._id,
-        admissionNumber: user.admissionNumber,
         fullName: user.fullName,
         email: user.email,
         institution: user.institution,
@@ -284,11 +281,10 @@ exports.updateProfile = async (req, res) => {
       message: 'Profile updated successfully',
       user: {
         id: user._id,
-        admissionNumber: user.admissionNumber,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        fullName: user.fullName,
         phoneNumber: user.phoneNumber,
+        institution: user.institution,
         role: user.role
       }
     });
