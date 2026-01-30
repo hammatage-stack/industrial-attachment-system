@@ -67,3 +67,7 @@ jobs:
         env:
           VITE_API_URL: http://localhost:5000/api
         run: npx playwright test --reporter=github
+
+      - name: Show backend logs if tests fail
+        if: failure()
+        run: cat backend/backend.log || true
