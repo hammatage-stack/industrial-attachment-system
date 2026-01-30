@@ -10,7 +10,8 @@ const Register = () => {
     email: '',
     phoneNumber: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: 'student'
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -143,6 +144,7 @@ const Register = () => {
           value={value}
           onChange={handleChange}
           onBlur={handleBlur}
+          autoFocus={name === 'fullName'}
           className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg focus:outline-none transition-colors ${
             errors[name] && touched[name]
               ? 'border-red-500 focus:border-red-500 bg-red-50'
