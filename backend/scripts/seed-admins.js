@@ -23,16 +23,16 @@ async function seedAdminUsers() {
     const admins = [
       {
         admissionNumber: 'ADMIN001',
-        firstName: 'Super',
-        lastName: 'Admin',
+        fullName: 'Super Admin',
+        email: 'admin001@gmail.com',
         phoneNumber: '254712345678',
         password: 'Manuu254@',
         role: 'admin'
       },
       {
         admissionNumber: 'ADMIN002',
-        firstName: 'Super',
-        lastName: 'Admin',
+        fullName: 'Admin User',
+        email: 'admin002@gmail.com',
         phoneNumber: '254712345679',
         password: 'Ham254@',
         role: 'admin'
@@ -60,8 +60,9 @@ async function seedAdminUsers() {
       const newAdmin = await User.create(admin);
       console.log(`✅ Admin user created`);
       console.log(`   Admission Number: ${admin.admissionNumber}`);
+      console.log(`   Email: ${admin.email}`);
       console.log(`   Password: ${admin.password}`);
-      console.log(`   Name: ${admin.firstName} ${admin.lastName}`);
+      console.log(`   Name: ${admin.fullName}`);
     }
 
     console.log('\n✨ Admin seeding completed!\n');
