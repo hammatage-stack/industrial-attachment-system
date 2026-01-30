@@ -18,6 +18,7 @@ router.get('/:id', getOpportunity);
 // Admin/Company routes
 router.post('/', protect, authorize('admin', 'company'), createOpportunity);
 router.put('/:id', protect, authorize('admin', 'company'), updateOpportunity);
+router.put('/:id/status', protect, authorize('admin', 'company'), require('../controllers/opportunityController').updateOpportunityStatus);
 router.delete('/:id', protect, authorize('admin', 'company'), deleteOpportunity);
 // Company-specific
 router.get('/company/mine', protect, authorize('company', 'admin'), require('../controllers/opportunityController').getMyPostedOpportunities);

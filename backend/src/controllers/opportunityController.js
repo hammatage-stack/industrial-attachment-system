@@ -304,6 +304,45 @@ exports.getSavedOpportunities = async (req, res) => {
   }
 };
 
+// @desc    Update only opportunity status (open/closed)
+// @route   PUT /api/opportunities/:id/status
+// @access  Private (admin/company)
+exports.updateOpportunityStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!status || !['open', 'closed'].includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status. Allowed: open, closed' });
+    }
+
+    const opportunity = await Opportunity.findById(req.params.id);
+    if (!opportunity) {
+      return res.status(404).json({ success: false, message: 'Opportunity not found' });
+    }
+
+    opportunity.status = status;
+    await opportunity.save();
+
+    // Emit notification for students when an opportunity is opened
+    try {
+      const notif = await Notification.create({
+        type: 'opportunity_update',
+        role: 'student',
+        message: `Opportunity "${opportunity.title}" status changed to ${status}`,
+        link: `/opportunities/${opportunity._id}`
+      });
+      const io = req.app.get('io');
+      if (io) io.emit('notification', notif);
+    } catch (e) {
+      console.error('Notification create failed', e);
+    }
+
+    res.status(200).json({ success: true, message: 'Status updated', opportunity });
+  } catch (error) {
+    console.error('Update opportunity status error:', error);
+    res.status(500).json({ success: false, message: 'Error updating status', error: error.message });
+  }
+};
+
 // @desc Get opportunities posted by current company
 // @route GET /api/opportunities/company/mine
 // @access Private (company/admin)
