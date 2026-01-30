@@ -15,11 +15,6 @@ const userSchema = new mongoose.Schema({
     required: false,
     trim: true
   },
-  institution: {
-    type: String,
-    required: false,
-    trim: true
-  },
   email: {
     type: String,
     required: false,
