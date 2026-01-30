@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { FiMail, FiLock, FiUser, FiPhone, FiHome, FiEye, FiEyeOff, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiMail, FiLock, FiUser, FiPhone, FiEye, FiEyeOff, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import useAuthStore from '../context/authStore';
 
 const Register = () => {
@@ -9,7 +9,6 @@ const Register = () => {
     fullName: '',
     email: '',
     phoneNumber: '',
-    institution: '',
     password: '',
     confirmPassword: ''
   });
@@ -37,10 +36,7 @@ const Register = () => {
         const cleanPhone = value.replace(/\D/g, '');
         if (cleanPhone.length < 10) return 'Invalid phone number format';
         return '';
-      case 'institution':
-        if (!value.trim()) return 'Institution is required';
-        if (value.trim().length < 2) return 'Institution name must be at least 2 characters';
-        return '';
+      
       case 'password':
         if (!value) return 'Password is required';
         if (value.length < 6) return 'Password must be at least 6 characters';
@@ -269,13 +265,7 @@ const Register = () => {
               </select>
             </div>
 
-            <FormField
-              icon={FiHome}
-              label="Institution"
-              name="institution"
-              placeholder="e.g., University of Nairobi"
-              value={formData.institution}
-            />
+            
 
             <PasswordField
               label="Password"
