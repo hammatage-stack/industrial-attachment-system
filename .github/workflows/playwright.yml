@@ -1,0 +1,70 @@
+name: Build and Push to ECR
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+env:
+  AWS_REGION: us-east-1  # Change to your region
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+  BACKEND_REPO: industrial-attachment-backend
+  FRONTEND_REPO: industrial-attachment-frontend
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      - name: Generate image tag
+        id: image-tag
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          BACKEND_TAG="${SHORT_SHA}-${TIMESTAMP}"
+          FRONTEND_TAG="${SHORT_SHA}-${TIMESTAMP}"
+          echo "backend-tag=${BACKEND_TAG}" >> $GITHUB_OUTPUT
+          echo "frontend-tag=${FRONTEND_TAG}" >> $GITHUB_OUTPUT
+          echo "Backend Tag: ${BACKEND_TAG}"
+          echo "Frontend Tag: ${FRONTEND_TAG}"
+      - name: Build Backend Docker image
+        working-directory: ./backend
+        run: |
+          docker build \
+            --tag ${{ env.ECR_REGISTRY }}/${{ env.BACKEND_REPO }}:${{ steps.image-tag.outputs.backend-tag }} \
+            --tag ${{ env.ECR_REGISTRY }}/${{ env.BACKEND_REPO }}:latest \
+            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+            --build-arg VCS_REF=${{ github.sha }} \
+            .
+      - name: Build Frontend Docker image
+        working-directory: ./frontend
+        run: |
+          docker build \
+            --tag ${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_REPO }}:${{ steps.image-tag.outputs.frontend-tag }} \
+            --tag ${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_REPO }}:latest \
+            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+            --build-arg VCS_REF=${{ github.sha }} \
+            .
+      - name: Push Backend image to ECR
+        run: |
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.BACKEND_REPO }}:${{ steps.image-tag.outputs.backend-tag }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.BACKEND_REPO }}:latest
+      - name: Push Frontend image to ECR
+        run: |
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_REPO }}:${{ steps.image-tag.outputs.frontend-tag }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_REPO }}:latest
