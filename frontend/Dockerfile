@@ -2,9 +2,10 @@ FROM node:18-alpine AS build
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+# Copy package files (wildcard pattern makes lock file optional)
+COPY package*.json ./
 
-RUN npm ci && npm cache clean --force
+RUN npm ci || npm install && npm cache clean --force
 
 COPY . .
 
