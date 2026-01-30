@@ -2,9 +2,9 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY package.json ./
+COPY package.json package-lock.json ./
 
-RUN npm install --production && npm cache clean --force
+RUN npm ci --only=production && npm cache clean --force
 
 COPY . .
 

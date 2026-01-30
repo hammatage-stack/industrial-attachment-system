@@ -2,9 +2,9 @@ FROM node:18-alpine AS build
 
 WORKDIR /app
 
-COPY package.json ./
+COPY package.json package-lock.json ./
 
-RUN npm install && npm cache clean --force
+RUN npm ci && npm cache clean --force
 
 COPY . .
 
