@@ -144,7 +144,6 @@ const Register = () => {
           value={value}
           onChange={handleChange}
           onBlur={handleBlur}
-          autoFocus={name === 'fullName'}
           className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg focus:outline-none transition-colors ${
             errors[name] && touched[name]
               ? 'border-red-500 focus:border-red-500 bg-red-50'
@@ -226,12 +225,15 @@ const Register = () => {
         {/* Form Card */}
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
+
             <FormField
               icon={FiUser}
               label="Full Name"
               name="fullName"
               placeholder="e.g., John Doe"
               value={formData.fullName}
+              // Only the first field gets autoFocus
+              autoFocus
             />
 
             <FormField
