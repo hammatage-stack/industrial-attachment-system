@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
+const upload = require('../middleware/upload');
 const searchController = require('../controllers/searchController');
 const profileController = require('../controllers/profileController');
 
@@ -129,7 +130,7 @@ router.patch('/profile', protect, profileController.updateProfile);
  *       200:
  *         description: Picture uploaded
  */
-router.post('/profile/picture', protect, profileController.uploadProfilePicture);
+router.post('/profile/picture', protect, upload.single('file'), profileController.uploadProfilePicture);
 
 /**
  * @swagger
