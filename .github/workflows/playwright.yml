@@ -51,6 +51,11 @@ jobs:
         working-directory: frontend
         run: npx playwright install --with-deps
 
+
+      - name: Seed Playwright test user
+        working-directory: backend
+        run: node scripts/seed-test-user.js
+
       - name: Start frontend (in background)
         working-directory: frontend
         run: |
