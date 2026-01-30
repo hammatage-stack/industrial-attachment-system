@@ -30,7 +30,7 @@ const normalizePhone = (phone) => {
 // @access  Public
 exports.register = async (req, res) => {
   try {
-    const { fullName, email, password, phoneNumber } = req.body;
+    const { fullName, email, password, phoneNumber, role } = req.body;
 
     // Validate required fields for new signup flow
     if (!fullName || !email || !password || !phoneNumber) {
@@ -67,12 +67,17 @@ exports.register = async (req, res) => {
       });
     }
 
+    // Validate and set role (allow student or company via frontend selection)
+    const allowedRoles = ['student', 'company'];
+    const userRole = allowedRoles.includes(role) ? role : 'student';
+
     // Create user
     const user = await User.create({
       fullName: fullName.trim(),
       email: email.toLowerCase().trim(),
       phoneNumber: normalizedPhone,
-      password
+      password,
+      role: userRole
     });
 
     // Generate token
