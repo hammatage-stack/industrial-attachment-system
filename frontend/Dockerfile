@@ -5,7 +5,7 @@ WORKDIR /app
 # Copy package files (wildcard pattern makes lock file optional)
 COPY package*.json ./
 
-RUN npm ci || npm install && npm cache clean --force
+RUN npm install && npm cache clean --force
 
 COPY . .
 
