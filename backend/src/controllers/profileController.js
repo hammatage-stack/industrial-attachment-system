@@ -25,7 +25,6 @@ exports.getProfile = async (req, res) => {
         email: user.email,
         phoneNumber: user.phoneNumber,
         role: user.role,
-        institution: user.institution,
         bio: user.bio || '',
         location: user.location || '',
         profilePicture: user.profilePicture || '',

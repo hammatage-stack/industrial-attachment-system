@@ -30,13 +30,13 @@ const normalizePhone = (phone) => {
 // @access  Public
 exports.register = async (req, res) => {
   try {
-    const { fullName, email, password, phoneNumber, institution } = req.body;
+    const { fullName, email, password, phoneNumber } = req.body;
 
     // Validate required fields for new signup flow
-    if (!fullName || !email || !password || !phoneNumber || !institution) {
+    if (!fullName || !email || !password || !phoneNumber) {
       return res.status(400).json({
         success: false,
-        message: 'All fields are required: fullName, email, phoneNumber, institution, password'
+        message: 'All fields are required: fullName, email, phoneNumber, password'
       });
     }
 
@@ -72,7 +72,6 @@ exports.register = async (req, res) => {
       fullName: fullName.trim(),
       email: email.toLowerCase().trim(),
       phoneNumber: normalizedPhone,
-      institution: institution.trim(),
       password
     });
 
@@ -87,7 +86,6 @@ exports.register = async (req, res) => {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
-        institution: user.institution,
         phoneNumber: user.phoneNumber,
         role: user.role
       }
@@ -218,7 +216,6 @@ exports.login = async (req, res) => {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
-        institution: user.institution,
         phoneNumber: user.phoneNumber,
         role: user.role
       }
@@ -246,7 +243,6 @@ exports.getMe = async (req, res) => {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
-        institution: user.institution,
         phoneNumber: user.phoneNumber,
         role: user.role
       }
@@ -266,12 +262,11 @@ exports.getMe = async (req, res) => {
 // @access  Private
 exports.updateProfile = async (req, res) => {
   try {
-    const { fullName, institution, phoneNumber } = req.body;
+    const { fullName, phoneNumber } = req.body;
 
     const user = await User.findById(req.user.id);
 
     if (fullName) user.fullName = fullName;
-    if (institution) user.institution = institution;
     if (phoneNumber) user.phoneNumber = phoneNumber;
 
     await user.save();
@@ -284,7 +279,6 @@ exports.updateProfile = async (req, res) => {
         email: user.email,
         fullName: user.fullName,
         phoneNumber: user.phoneNumber,
-        institution: user.institution,
         role: user.role
       }
     });
